@@ -1,0 +1,8 @@
+[package]
+name = "break_repeating_key_xor"
+version = "0.1.0"
+authors = ["Luke Wegryn <luwegryn@cisco.com>"]
+
+[dependencies]
+edit-distance = "^1.0.0"
+base64 = "~0.6.0"

@@ -1,0 +1,6 @@
+[package]
+name = "detect_single_char_xor"
+version = "0.1.0"
+authors = ["Luke Wegryn <luwegryn@cisco.com>"]
+
+[dependencies]
