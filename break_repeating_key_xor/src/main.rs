@@ -61,7 +61,7 @@ pub fn calc_english_score(ref buffer: &String) -> (u32) {
 		for byte in buffer.as_bytes() {
 			  //ETAOIN SHRDLU cmfwyp vbgkjq xz
 				match byte {
-					  &32 => score += 27, //SPACE
+					  //&32 => score += 27, //SPACE
 						&b'E' | &b'e' => score += 26, //E or e
 						&b'T' | &b't' => score += 25, //T or t
 						&b'A' | &b'a' => score += 24, //A or a
@@ -215,7 +215,10 @@ pub fn transpose(contents: &Vec<u8>, block_size: usize) -> HashMap<usize, Vec<u8
 pub fn crack_xor_key(contents: &Vec<u8>, block_size: usize) -> HashMap<usize, Vec<u8>> {
 	let mut transpose = transpose(&contents, block_size);
 	assert_eq!(block_size, transpose.len());
-
+	for i in 0..transpose.len() {
+		//println!("{:?}", transpose[&i]);
+		println!("{:?}",get_decrypt_key(&transpose[&i]));
+	}
 	return transpose;
 }
 
@@ -253,9 +256,13 @@ fn main() {
 
 		key_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-		//println!("{:?}", key_distance);
+		//println!("Key Distance: {:?}", key_distance);
 
-		crack_xor_key(&bytes,(key_distance[0].0 as usize));
+		for i in 0..key_distance.len() {
+			println!("KEYSIZE: {}", key_distance[i].0);
+			println!("----------------");
+			crack_xor_key(&bytes,(key_distance[i].0 as usize));
+		}
 
 
 		//println!("{}",hamming_distance(test1.into_bytes(), test2.into_bytes()));*/
