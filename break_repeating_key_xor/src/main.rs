@@ -61,33 +61,33 @@ pub fn calc_english_score(ref buffer: &String) -> (u32) {
 		for byte in buffer.as_bytes() {
 			  //ETAOIN SHRDLU cmfwyp vbgkjq xz
 				match byte {
-					  //&32 => score += 27, //SPACE
-						&b'E' | &b'e' => score += 26, //E or e
-						&b'T' | &b't' => score += 25, //T or t
-						&b'A' | &b'a' => score += 24, //A or a
-						&b'O' | &b'o' => score += 23, //O or o
-						&b'I' | &b'i' => score += 22, //I or i
-						&b'N' | &b'n' => score += 21, //N or n
-						&b'S' | &b's' => score += 20, //S or s
-						&b'H' | &b'h' => score += 19, //H or h
-						&b'R' | &b'r' => score += 18, //R or r
-						&b'D' | &b'd' => score += 17, //D or d
-						&b'L' | &b'l' => score += 16, //L or l
-						&b'U' | &b'u' => score += 15, //U or u
-						&b'C' | &b'c' => score += 14, //C or c
-						&b'M' | &b'm' => score += 13, //M or m
-						&b'F' | &b'f' => score += 12, //F or f
-						&b'W' | &b'w' => score += 11, //W or w
-						&b'Y' | &b'y' => score += 10, //Y or y
-						&b'P' | &b'p' => score += 8, //P or p
-						&b'V' | &b'v' => score += 8, //V or v
-						&b'B' | &b'b' => score += 7, //B or b
-						&b'G' | &b'g' => score += 6, //G or g
-						&b'K' | &b'k' => score += 5, //K or k
-						&b'J' | &b'j' => score += 4, //J or j
-						&b'Q' | &b'q' => score += 3, //Q or q
-						&b'X' | &b'x' => score += 2, //X or x
-						&b'Z' | &b'z' => score += 1, //Z or z
+					    &32 => score += 2320, //SPACE
+						&b'E' | &b'e' => score += 1260, //E or e
+						&b'T' | &b't' => score += 937, //T or t
+						&b'A' | &b'a' => score += 834, //A or a
+						&b'O' | &b'o' => score += 770, //O or o
+						&b'I' | &b'i' => score += 671, //I or i
+						&b'N' | &b'n' => score += 680, //N or n
+						&b'S' | &b's' => score += 611, //S or s
+						&b'H' | &b'h' => score += 611, //H or h
+						&b'R' | &b'r' => score += 568, //R or r
+						&b'D' | &b'd' => score += 414, //D or d
+						&b'L' | &b'l' => score += 424, //L or l
+						&b'U' | &b'u' => score += 285, //U or u
+						&b'C' | &b'c' => score += 273, //C or c
+						&b'M' | &b'm' => score += 253, //M or m
+						&b'F' | &b'f' => score += 203, //F or f
+						&b'W' | &b'w' => score += 234, //W or w
+						&b'Y' | &b'y' => score += 204, //Y or y
+						&b'P' | &b'p' => score += 166, //P or p
+						&b'V' | &b'v' => score += 106, //V or v
+						&b'B' | &b'b' => score += 154, //B or b
+						&b'G' | &b'g' => score += 192, //G or g
+						&b'K' | &b'k' => score += 87, //K or k
+						&b'J' | &b'j' => score += 23, //J or j
+						&b'Q' | &b'q' => score += 9, //Q or q
+						&b'X' | &b'x' => score += 20, //X or x
+						&b'Z' | &b'z' => score += 6, //Z or z
 						_ => score += 0 //everything else
 				}
 		}
@@ -158,26 +158,23 @@ pub fn get_decrypt_key (content: &Vec<u8>) -> u8 {
   return decrypt_key;
 }
 
-pub fn next_key(curr_key: u8) -> u8 {
-	let next_key = match curr_key {
-		b'I' => b'C',
-		b'C' => b'E',
-		b'E' => b'I',
-		_ => panic!("There was an error")
-	};
+pub fn decrypt(to_decrypt: &Vec<u8>, key: Vec<u8>) -> Vec<u8> {
+	let mut curr_index:usize = 0;
+	let mut decrypted_result = Vec::new();
 
-	next_key
+	for byte in to_decrypt {
+		decrypted_result.push(byte ^ &key[curr_index]);
+		curr_index = next_key(curr_index, &key);
+	}
+	return decrypted_result;
 }
 
-pub fn repeating_key_xor(bytes: Vec<u8>, seed_key: u8) -> (Vec<u8>, u8) {
-	let mut xored_bytes = Vec::new();
-	let mut curr_key = seed_key;
-	for i in 0..bytes.len() {
-		let res = &bytes[i] ^ curr_key;
-		xored_bytes.push(res);
-		curr_key = next_key(curr_key);
+pub fn next_key(curr_index: usize, key_vec: &Vec<u8>) -> usize {
+	if (curr_index >= key_vec.len()-1) {
+		return 0;
+	} else {
+		return curr_index + 1;
 	}
-	(xored_bytes, next_key(curr_key))
 }
 
 pub fn hamming_distance(hex_a: Vec<u8>, hex_b: Vec<u8>) -> u32 {
@@ -212,27 +209,34 @@ pub fn transpose(contents: &Vec<u8>, block_size: usize) -> HashMap<usize, Vec<u8
 	return transpose;
 }
 
-pub fn crack_xor_key(contents: &Vec<u8>, block_size: usize) -> HashMap<usize, Vec<u8>> {
+pub fn crack_xor_key(contents: &Vec<u8>, block_size: usize) -> Vec<u8> {
 	let mut transpose = transpose(&contents, block_size);
 	assert_eq!(block_size, transpose.len());
+	let mut curr_key = Vec::new();
 	for i in 0..transpose.len() {
 		//println!("{:?}", transpose[&i]);
-		println!("{:?}",get_decrypt_key(&transpose[&i]));
+		//println!("{:?}",get_decrypt_key(&transpose[&i]));
+		curr_key.push(get_decrypt_key(&transpose[&i]))
 	}
-	return transpose;
+	return curr_key;
 }
+
+/*pub fn normalized_hamming_distance (bytes: &Vec<u8>, key_size: usize) {
+
+}*/
 
 fn main() {
 		//let test1 = "this is a test".to_string();
 		//let test2 = "wokka wokka!!!".to_string();
 		let mut key_distance = Vec::new();
 		let mut f = File::open("encrypted.txt").expect("Unable to open file");
-	 	let mut contents = String::new();
-	 	f.read_to_string(&mut contents).expect("Unable to read");
+	 	let mut encoded_contents = String::new();
+	 	f.read_to_string(&mut encoded_contents).expect("Unable to read");
 	 	//let decoded_contents = base64::decode(&contents);
 		//println!("{}",edit_distance::edit_distance("kitten","sitting"));
 
-		let bytes = contents.into_bytes();
+		let bytes = base64::decode_config(&encoded_contents, base64::MIME).unwrap();
+		//let bytes = contents.into_bytes();
 		//println!("{:?}",bytes );
 
 		//let mut smallest_distance: f32 = std::f32::MAX;
@@ -256,12 +260,14 @@ fn main() {
 
 		key_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-		//println!("Key Distance: {:?}", key_distance);
+		println!("Key Distance: {:?}", key_distance);
 
-		for i in 0..key_distance.len() {
+		//let mut key_vec = Vec::new();
+
+		for i in 0..20 {
 			println!("KEYSIZE: {}", key_distance[i].0);
-			println!("----------------");
-			crack_xor_key(&bytes,(key_distance[i].0 as usize));
+			//println!("----------------");
+			println!("{:?}", String::from_utf8(decrypt(&bytes,crack_xor_key(&bytes,(key_distance[i].0 as usize)))).unwrap());
 		}
 
 
