@@ -170,7 +170,7 @@ pub fn decrypt(to_decrypt: &Vec<u8>, key: Vec<u8>) -> Vec<u8> {
 }
 
 pub fn next_key(curr_index: usize, key_vec: &Vec<u8>) -> usize {
-	if (curr_index >= key_vec.len()-1) {
+	if curr_index >= key_vec.len()-1 {
 		return 0;
 	} else {
 		return curr_index + 1;
@@ -186,10 +186,10 @@ pub fn hamming_distance(hex_a: Vec<u8>, hex_b: Vec<u8>) -> u32 {
 	return distance;
 }
 
-pub fn get_n_bytes(bytes: &Vec<u8>, lower_n: u32, upper_n: u32) -> Vec<u8> {
+pub fn get_n_bytes(bytes: &Vec<u8>, lower_n: usize, upper_n: usize) -> Vec<u8> {
 	let mut n_bytes = Vec::new();
 	for i in lower_n..upper_n {
-		n_bytes.push(bytes[(i as usize)])
+		n_bytes.push(bytes[i])
 	}
 	return n_bytes;
 }
@@ -210,7 +210,7 @@ pub fn transpose(contents: &Vec<u8>, block_size: usize) -> HashMap<usize, Vec<u8
 }
 
 pub fn crack_xor_key(contents: &Vec<u8>, block_size: usize) -> Vec<u8> {
-	let mut transpose = transpose(&contents, block_size);
+	let transpose = transpose(&contents, block_size);
 	assert_eq!(block_size, transpose.len());
 	let mut curr_key = Vec::new();
 	for i in 0..transpose.len() {
@@ -221,9 +221,17 @@ pub fn crack_xor_key(contents: &Vec<u8>, block_size: usize) -> Vec<u8> {
 	return curr_key;
 }
 
-/*pub fn normalized_hamming_distance (bytes: &Vec<u8>, key_size: usize) {
+pub fn normalized_hamming_distance (bytes: &Vec<u8>, key_size: usize) -> f32{
+	let mut ham_sum = 0;
+	for i in 0..(bytes.len()/key_size)-1{
+		ham_sum += hamming_distance(get_n_bytes(&bytes, (i+0)*key_size, (i+1)*key_size), get_n_bytes(&bytes, (i+1)*key_size, (i+2)*key_size));
+		//println!("{}", edit_distance);
+	}
 
-}*/
+	let ham_avg = (ham_sum as f32) / ((bytes.len()/key_size -1) as f32);
+
+	return ham_avg / (key_size as f32);
+}
 
 fn main() {
 		//let test1 = "this is a test".to_string();
@@ -242,48 +250,26 @@ fn main() {
 		//let mut smallest_distance: f32 = std::f32::MAX;
 		//let mut smallest_key = 2;
 
-		for key_size in 1..40 {
-			let bytes_key_size = get_n_bytes(&bytes, 0, key_size);
-			let bytes_key_size_plus_one = get_n_bytes(&bytes, key_size, 2*key_size);
-			//println!("{:?} <HAM> {:?}", bytes_key_size, bytes_key_size_plus_one);
-			let edit_distance = hamming_distance(bytes_key_size, bytes_key_size_plus_one);
-			//println!("{}", edit_distance);
-			let normalized_distance = (edit_distance as f32) / (key_size as f32);
-			/*if normalized_distance < smallest_distance {
-				smallest_key = key_size;
-				smallest_distance = normalized_distance;
-			}*/
+		for key_size in 2..40 {
+			let normalized_distance = normalized_hamming_distance(&bytes, key_size);
 			key_distance.push((key_size, normalized_distance));
-			//println!("key_size: {}, normalized_distance: {}", key_size, edit_distance);
-			//println!("key_size: {}, normalized_distance: {}", key_size, normalized_distance);
 		}
 
 		key_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-		println!("Key Distance: {:?}", key_distance);
+		//println!("Key Distance: {:?}", key_distance);
 
 		//let mut key_vec = Vec::new();
 
-		for i in 0..20 {
+		/*
+		if you want to try the top few key sizes
+		for i in 0..5 {
 			println!("KEYSIZE: {}", key_distance[i].0);
 			//println!("----------------");
 			println!("{:?}", String::from_utf8(decrypt(&bytes,crack_xor_key(&bytes,(key_distance[i].0 as usize)))).unwrap());
-		}
-
-
-		//println!("{}",hamming_distance(test1.into_bytes(), test2.into_bytes()));*/
-
-	 	/*let mut f = File::open("to_encrypt.txt").expect("Unable to open file");
-	 	let mut contents = String::new();
-	 	f.read_to_string(&mut contents).expect("Unable to read");
-	 	let mut encrypted_output = String::new();
-    let mut curr_key = b'I';
-    let answer = hex_string_to_hex(String::from("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"));
-    let line_bytes = contents.into_bytes();
-    let (res, next_key) = repeating_key_xor(line_bytes, curr_key);
-    assert_eq!(answer,&*res);
-    encrypted_output = hex_vec_to_string(res).to_string();
-    println!("{}", encrypted_output);*/
+		}*/
+		println!("Key Size: {:?}", key_distance[0].0);
+		println!("{:?}", String::from_utf8(decrypt(&bytes,crack_xor_key(&bytes,(key_distance[0].0 as usize)))).unwrap());
 }
 
 
